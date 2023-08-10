@@ -1,3 +1,7 @@
+using Application;
+using Microsoft.EntityFrameworkCore;
+using Persistence;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +10,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<TaskDbContext>();
+builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 
@@ -21,5 +27,11 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var serviceScope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
+{
+    serviceScope.ServiceProvider.GetService<TaskDbContext>()!
+        .Database.Migrate();
+}
 
 app.Run();
